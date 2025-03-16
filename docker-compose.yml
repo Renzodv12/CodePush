@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      API_PORT: 3000
+      # Storage Configuration
+      EMULATED: "true"
+      AZURE_EMULATED_STORAGE_CONNECTION_STRING: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
+      TEST_AZURE_STORAGE: false # Run API unit tests against Azure storage
+      AZURE_ACQUISITION_URL:   
+      # Server Configuration
+      SERVER_URL: "http://localhost:3000"
+      
+      # Authentication
+      GITHUB_CLIENT_ID: 'Ov23liC5kXORPaxSr6rb'
+      GITHUB_CLIENT_SECRET: '1f865bb944f0f7e29ed518b61e6651f11cd8c112'
+      
+      # Redis Configuration
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      
+      # Optional Configuration
+      LOGGING: "true"
+      DEBUG_DISABLE_AUTH: "false"
+      DISABLE_ACQUISITION: "false"
+      DISABLE_MANAGEMENT: "false"
+      ENABLE_ACCOUNT_REGISTRATION: "true"
+      UPLOAD_SIZE_LIMIT_MB: "200"
+      ENABLE_PACKAGE_DIFFING: "true"
+      
+    depends_on:
+      - redis
+      - azurite
+    volumes:
+      - ./:/app
+      - /app/node_modules
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000"  # Blob Service
+      - "10001:10001"  # Queue Service
+      - "10002:10002"  # Table Service
+    volumes:
+      - azurite-data:/data
+
+volumes:
+  redis-data:
+  azurite-data:
